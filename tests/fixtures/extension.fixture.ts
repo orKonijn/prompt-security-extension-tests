@@ -5,7 +5,7 @@ import { loadConfig } from "../support/config.ts";
 import { ExtensionSettingsPage } from "../pages/extension-settings.page.ts";
 
 export const test = base.extend<{ extensionContext: BrowserContext }>({
-  extensionContext: async ({}, use) => {
+  extensionContext: async ({}, use, testInfo) => {
     const config = await loadConfig();
     let context: BrowserContext;
     try {
@@ -19,9 +19,10 @@ export const test = base.extend<{ extensionContext: BrowserContext }>({
         ],
         timeout: TIMEOUTS.launch,
       });
-    } catch {
+    } catch (cause) {
       throw new Error(
         "SETUP: Chromium could not launch. Run npm run browser:install; on Linux install browser dependencies and use xvfb-run for headed mode.",
+        { cause },
       );
     }
     try {
@@ -39,15 +40,16 @@ export const test = base.extend<{ extensionContext: BrowserContext }>({
       await settings.goto(
         `${EXTENSION.scheme}${extensionId}/${EXTENSION.popupPath}`,
       );
-      await new ExtensionSettingsPage(settings).configure(
-        config.apiDomain,
-        config.apiKey,
-      );
-      await settings.close();
+      const settingsPage = new ExtensionSettingsPage(settings);
+      await settingsPage.configure(config.apiDomain, config.apiKey);
+      // Keep the page alive so a late backend-error alert cannot be lost.
       console.log(
-        `SETUP: Extension ${config.version} loaded; backend configuration accepted. Policy enforcement is not yet tested.`,
+        `SETUP: Extension ${config.version} loaded; settings submitted through the UI. Backend acceptance and policy readiness are not verified.`,
       );
       await use(context);
+      if (testInfo.status === "passed") {
+        settingsPage.assertNoConfigurationError();
+      }
     } finally {
       await context.close();
     }

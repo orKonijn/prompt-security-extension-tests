@@ -3,7 +3,7 @@
 ## Status
 
 Level 3: the setup harness plus six real-site policy scenarios. The setup test
-verifies backend configuration acceptance; the policy tests separately check access.
+verifies extension loading and UI settings submission; the policy tests separately check access.
 Gemini enforcement has not yet been observed with the supplied configuration, so
 the suite is not currently a passing acceptance result.
 
@@ -22,18 +22,15 @@ assigned to the supplied credentials; this repository cannot correct that remote
 
 ## Page object model
 
-- `tests/pages/extension-settings.page.ts`: settings controls, configuration readiness,
-  and a restricted policy diagnostic.
+- `tests/pages/extension-settings.page.ts`: settings controls and UI submission.
 - `tests/pages/chatgpt.page.ts`: ChatGPT navigation and composer access assertions.
 - `tests/pages/gemini.page.ts`: Gemini navigation, refresh, and blocking assertions.
 - `tests/policy.spec.ts`: scenarios composed from these page objects.
 - `tests/fixtures/extension.fixture.ts`: isolated profile setup and cleanup.
 
-On a blocking assertion failure, the diagnostic reads the extension's existing
-`getSiteActionConfig` message interface. It prints only an allowlisted action and
-three booleans; it never prints credentials, user identity, or full configuration.
-That interface also triggers the extension's normal configuration refresh. The
-original UI failure remains authoritative; diagnostic success cannot pass a test.
+The `Inspect` finding above is historical investigation evidence. The test suite
+no longer queries internal policy messages; failures come directly from the UI
+assertions, with Playwright's normal failure output.
 
 ## Prerequisites
 
@@ -64,9 +61,12 @@ separately; eslint-config-prettier disables conflicting formatting rules.
 Downloaded extensions, local credentials, and generated artifacts are excluded.
 TypeScript is pinned to 6.0.3, supported by the installed typescript-eslint release.
 
-The lint toolchain currently has a moderate minimatch advisory reported by
-`npm audit` (10 affected dependency entries). No forced dependency overrides are
-applied. This concerns the development tooling, not extension policy enforcement.
+The lint toolchain pins the transitive `minimatch` dependency to `11.0.1` through
+an npm override to fix [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+Upstream tools still request version 10, so this crosses a major-version boundary;
+the project validates compatibility with a clean install and the full lint checks.
+Remove the override once upstream dependencies require a patched version.
+`npm audit` reports zero vulnerabilities with the updated lockfile.
 
 ## Installing and running
 
@@ -127,13 +127,18 @@ Unexpected process termination may leave a temporary profile on the machine.
 2. Launch Playwright's bundled Chromium with the extension loaded.
 3. Wait up to 20 seconds for the extension service worker.
 4. Open the extension popup, fill its actual API Domain and API Key controls, and click Save.
-5. Observe the existing `getConfigFromBackend` callback, allowing up to 45 seconds.
-6. Fail if configuration is rejected or times out, and always close the context.
+5. Wait for Save to disappear, confirming the UI processed submission.
+6. Run the scenario and always close the context.
 
-The callback observer forwards the original message and response unchanged. It
-does not mock requests, write extension settings directly, or modify policy.
-This integration point was inspected in 7.1.80 and should be rechecked when upgrading.
-Successful configuration is a setup prerequisite, not evidence of a specific policy.
+Setup does not intercept extension callbacks or add browser global state. Save
+disappearing is not proof of backend acceptance: this UI has no reliable positive
+readiness indicator. Policy assertions use bounded waits for observable results.
+Backend rejection or delayed policy loading can therefore surface as a policy
+test failure rather than a setup failure; setup passing alone does not prove protection.
+The settings page stays open until cleanup so configuration-error alerts can be
+recorded. An observed alert fails an otherwise passing test without exposing its
+text or replacing an existing policy failure. Browser-launch errors retain their
+original cause for troubleshooting.
 
 One worker, zero retries, and bounded test/run timeouts keep failures visible.
 Console output names each test and prints the final result; failures return a nonzero code.
