@@ -2,9 +2,38 @@
 
 ## Status
 
-Level 2: a working setup harness. This is **not yet a policy enforcement suite**.
-The setup test loads the real extension and verifies that its backend configuration
-callback succeeds. It does not prove ChatGPT is allowed or Gemini is blocked.
+Level 3: the setup harness plus six real-site policy scenarios. The setup test
+verifies backend configuration acceptance; the policy tests separately check access.
+Gemini enforcement has not yet been observed with the supplied configuration, so
+the suite is not currently a passing acceptance result.
+
+Local Windows run on November 11, 2026: TypeScript checking passed; the full suite
+finished with **2 passed, 5 failed**. Setup and direct ChatGPT access passed. All
+five Gemini scenarios failed waiting for denial, with Gemini's normal UI visible.
+Refresh and blocked-to-allowed follow-up steps were not reached.
+
+Investigation found the extension's effective cached action for `gemini.google.com`
+is **Inspect**, not **Block**. The extension reports it is enabled, the domain is
+not ignored, and no work-profile restriction is configured. This explains the
+observed access: the effective policy does not match the assignment. The test
+expectation remains Block. No administrator policy or extension state was altered
+to manufacture a passing result. The policy owner needs to verify the policy
+assigned to the supplied credentials; this repository cannot correct that remotely.
+
+## Page object model
+
+- `tests/pages/extension-settings.page.ts`: settings controls, configuration readiness,
+  and a restricted policy diagnostic.
+- `tests/pages/chatgpt.page.ts`: ChatGPT navigation and composer access assertions.
+- `tests/pages/gemini.page.ts`: Gemini navigation, refresh, and blocking assertions.
+- `tests/policy.spec.ts`: scenarios composed from these page objects.
+- `tests/fixtures/extension.fixture.ts`: isolated profile setup and cleanup.
+
+On a blocking assertion failure, the diagnostic reads the extension's existing
+`getSiteActionConfig` message interface. It prints only an allowlisted action and
+three booleans; it never prints credentials, user identity, or full configuration.
+That interface also triggers the extension's normal configuration refresh. The
+original UI failure remains authoritative; diagnostic success cannot pass a test.
 
 ## Prerequisites
 
@@ -33,6 +62,39 @@ The default API domain is `eu.prompt.security`. Never commit `.env`.
 npm run check
 npm run test:setup
 ```
+
+Run the policy scenarios, or the complete suite:
+
+```sh
+npx playwright test tests/policy.spec.ts
+npm test
+```
+
+## Policy coverage and assertion limits
+
+| Scenario | Expected behavior |
+| --- | --- |
+| Direct ChatGPT navigation | Composer visible, editable, and reachable without an intercepting overlay |
+| Direct Gemini navigation | Prompt Security denial visible |
+| Refresh Gemini | Denial present both before and after refresh |
+| ChatGPT to Gemini in the same tab | ChatGPT accessible first, then Gemini denied |
+| Gemini to ChatGPT in the same tab | Gemini denied first, then ChatGPT accessible |
+| Gemini in a second tab | Gemini denied while the original ChatGPT tab stays accessible |
+
+Each test gets a fresh extension profile. Tests do not send chat prompts or modify
+administrator policy. A failed prerequisite stops that scenario; later steps must
+not be reported as exercised. No scenarios are skipped or marked as expected failures.
+
+ChatGPT's composer locator was observed on the live signed-out page. The denial
+assertion uses `Access Denied` plus the vendor link from the shipped 7.1.80 block
+template, and checks that no visible Access bypass button is offered. The extension
+also supports backend-provided block HTML, so this block UI contract remains
+provisional until real enforcement is observed. If an actual block uses a different
+template, inspect it before adjusting the assertion. Never accept a generic error
+page as a block. Current failure snapshots show Gemini's ordinary composer.
+
+The suite has a ten-minute overall bound and a 90-second limit per test. Linux CI
+and successful enforcement are still unverified.
 
 The default is headed mode. Set `HEADLESS=true` for headless Chromium.
 Both modes use a fresh, temporary persistent profile; your normal browser profile
@@ -86,6 +148,7 @@ See [Playwright extension support](https://playwright.dev/docs/chrome-extensions
 
 ## Next levels
 
-Level 3 adds positive/negative policy tests against ChatGPT and Gemini. Level 4
-adds safe diagnostics and negative validation. Level 5 adds GitHub Actions.
+Level 3 adds positive/negative policy tests against ChatGPT and Gemini; passing
+enforcement validation remains outstanding. Level 4 adds safe diagnostics and
+negative validation. Level 5 adds GitHub Actions.
 Level 6 completes submission documentation. Each level requires approval before proceeding.

@@ -1,3 +1,4 @@
+import { EXTENSION } from "../resources/constants.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -24,7 +25,7 @@ export async function loadConfig() {
 
   try {
     manifest = JSON.parse(
-      await readFile(path.join(extensionDir, "manifest.json"), "utf8"),
+      await readFile(path.join(extensionDir, EXTENSION.manifestFile), "utf8"),
     );
   } catch {
     throw new Error(
@@ -33,9 +34,9 @@ export async function loadConfig() {
   }
   if (
     !manifest ||
-    manifest.manifest_version !== 3 ||
+    manifest.manifest_version !== EXTENSION.manifestVersion ||
     !manifest.background?.service_worker ||
-    manifest.action?.default_popup !== "html/popup.html"
+    manifest.action?.default_popup !== EXTENSION.popupPath
   ) {
     throw new Error(
       "SETUP: Unsupported extension manifest; inspect its configuration interface before proceeding.",
