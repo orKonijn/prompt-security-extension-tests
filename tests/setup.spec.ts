@@ -1,7 +1,7 @@
-import { EXTENSION } from "./resources/constants.js";
-import { test, expect } from "./fixtures/extension.fixture.js";
+import { EXTENSION } from "./resources/extension-settings.constants.ts";
+import { test, expect } from "./fixtures/extension.fixture.ts";
 
-test("setup only: extension loads and accepts backend configuration", async ({
+test("setup only: extension loads and accepts backend configuration", ({
   extensionContext,
 }) => {
   expect(

@@ -1,6 +1,6 @@
-import { test } from "./fixtures/extension.fixture.js";
-import { ChatGptPage } from "./pages/chatgpt.page.js";
-import { GeminiPage } from "./pages/gemini.page.js";
+import { test } from "./fixtures/extension.fixture.ts";
+import { ChatGptPage } from "./pages/chatgpt.page.ts";
+import { GeminiPage } from "./pages/gemini.page.ts";
 
 test("allows direct access to ChatGPT", async ({ extensionContext }) => {
   const chatGpt = new ChatGptPage(await extensionContext.newPage());

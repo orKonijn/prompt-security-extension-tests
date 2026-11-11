@@ -1,4 +1,4 @@
-import { EXTENSION } from "../resources/constants.js";
+import { EXTENSION } from "../resources/extension-settings.constants.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -26,7 +26,7 @@ export async function loadConfig() {
   try {
     manifest = JSON.parse(
       await readFile(path.join(extensionDir, EXTENSION.manifestFile), "utf8"),
-    );
+    ) as chrome.runtime.ManifestV3;
   } catch {
     throw new Error(
       "SETUP: Cannot read a valid manifest.json from EXTENSION_PATH. Unpack ZIP/CRX first.",

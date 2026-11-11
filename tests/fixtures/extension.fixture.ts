@@ -1,7 +1,8 @@
-import { EXTENSION, TIMEOUTS } from "../resources/constants.js";
+import { EXTENSION } from "../resources/extension-settings.constants.ts";
+import { TIMEOUTS } from "../resources/timeouts.ts";
 import { test as base, chromium, type BrowserContext } from "@playwright/test";
-import { loadConfig } from "../support/config.js";
-import { ExtensionSettingsPage } from "../pages/extension-settings.page.js";
+import { loadConfig } from "../support/config.ts";
+import { ExtensionSettingsPage } from "../pages/extension-settings.page.ts";
 
 export const test = base.extend<{ extensionContext: BrowserContext }>({
   extensionContext: async ({}, use) => {

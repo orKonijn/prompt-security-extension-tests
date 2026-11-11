@@ -1,18 +1,14 @@
-import {
-  UI,
-  URLS,
-  URL_PATTERNS,
-  DOMAINS,
-  TIMEOUTS,
-} from "../resources/constants.js";
+import { GEMINI } from "../resources/gemini.constants.ts";
+import { BLOCK_PAGE } from "../resources/block-page.constants.ts";
+import { TIMEOUTS } from "../resources/timeouts.ts";
 import { expect, type Page } from "@playwright/test";
-import { ExtensionSettingsPage } from "./extension-settings.page.js";
+import { ExtensionSettingsPage } from "./extension-settings.page.ts";
 
 export class GeminiPage {
   public constructor(public readonly page: Page) {}
 
   public async open() {
-    await this.page.goto(URLS.gemini, {
+    await this.page.goto(GEMINI.url, {
       waitUntil: "domcontentloaded",
       timeout: TIMEOUTS.navigation,
     });
@@ -26,10 +22,10 @@ export class GeminiPage {
   }
 
   public async expectBlocked() {
-    await expect(this.page).toHaveURL(URL_PATTERNS.gemini);
+    await expect(this.page).toHaveURL(GEMINI.urlPattern);
     try {
       await expect(
-        this.page.getByText(UI.accessDenied, { exact: true }),
+        this.page.getByText(BLOCK_PAGE.title, { exact: true }),
         "Expected Prompt Security to block Gemini",
       ).toBeVisible({ timeout: TIMEOUTS.assertion });
 
@@ -37,15 +33,18 @@ export class GeminiPage {
         has: this.page.getByRole("img"),
       });
       await expect(vendorLink).toBeVisible();
-      await expect(vendorLink).toHaveAttribute("href", URLS.vendor);
+      await expect(vendorLink).toHaveAttribute("href", BLOCK_PAGE.vendorUrl);
 
       await expect(
-        this.page.getByRole("button", { name: UI.access, exact: true }),
+        this.page.getByRole("button", {
+          name: BLOCK_PAGE.accessButtonName,
+          exact: true,
+        }),
       ).toBeHidden();
     } catch (error) {
       await ExtensionSettingsPage.reportPolicy(
         this.page.context(),
-        DOMAINS.gemini,
+        GEMINI.domain,
       );
       throw error;
     }

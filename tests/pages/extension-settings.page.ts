@@ -1,5 +1,10 @@
-import { EXTENSION, TIMEOUTS, UI } from "../resources/constants.js";
+import {
+  EXTENSION,
+  SETTINGS_UI,
+} from "../resources/extension-settings.constants.ts";
+import { TIMEOUTS } from "../resources/timeouts.ts";
 import type { BrowserContext, Page } from "@playwright/test";
+import type { ExtensionScope, SiteActionConfig } from "../types/extension.ts";
 
 export class ExtensionSettingsPage {
   public constructor(public readonly page: Page) {}
@@ -17,7 +22,10 @@ export class ExtensionSettingsPage {
       const summary = await page.evaluate(
         async ({ domain, messageType, knownActions, timeout }) => {
           const config = await Promise.race([
-            chrome.runtime.sendMessage({ type: messageType, domain }),
+            chrome.runtime.sendMessage<unknown, SiteActionConfig>({
+              type: messageType,
+              domain,
+            }),
             new Promise<never>((_, reject) =>
               setTimeout(
                 () => reject(new Error("Diagnostic timeout")),
@@ -27,10 +35,14 @@ export class ExtensionSettingsPage {
           ]);
           const action = config?.domainActions?.action;
           return {
-            action: knownActions.includes(action) ? action : "unknown",
+            action:
+              knownActions.find((knownAction) => knownAction === action) ??
+              "unknown",
             disabled: config?.isExtensionDisabled === true,
             workProfileRestricted: Boolean(config?.workProfileDomain),
-            ignored: config?.ignoredDomains?.includes(domain) === true,
+            ignored:
+              Array.isArray(config?.ignoredDomains) &&
+              config.ignoredDomains.includes(domain),
           };
         },
         {
@@ -57,31 +69,45 @@ export class ExtensionSettingsPage {
     try {
       // The extension's visible field labels are not associated with the inputs.
       // Keep stable IDs here until getByLabel can identify them reliably.
-      await page.locator(UI.apiDomainSelector).fill(apiDomain);
-      await page.locator(UI.apiKeySelector).fill(apiKey);
+      await page.locator(SETTINGS_UI.apiDomainSelector).fill(apiDomain);
+      await page.locator(SETTINGS_UI.apiKeySelector).fill(apiKey);
       await page.evaluate((configurationMessage) => {
-        const scope = globalThis as any;
+        const scope = globalThis as ExtensionScope;
         scope.__configurationResult = "pending";
-        const runtime = scope.chrome.runtime;
-        const original = runtime.sendMessage.bind(runtime);
-        runtime.sendMessage = (message: any, ...args: any[]) => {
-          if (message?.type !== configurationMessage)
-            return original(message, ...args);
-          const callback = args[0];
-          return original(message, (result: unknown) => {
-            scope.__configurationResult = result ? "accepted" : "rejected";
-            callback?.(result);
-          });
-        };
+        const runtime = chrome.runtime;
+        runtime.sendMessage = new Proxy(runtime.sendMessage, {
+          apply(target, receiver: unknown, args: unknown[]) {
+            const [message] = args;
+            const callback = args.at(-1);
+            if (
+              typeof message === "object" &&
+              message !== null &&
+              "type" in message &&
+              message.type === configurationMessage &&
+              typeof callback === "function"
+            ) {
+              args[args.length - 1] = (result: unknown) => {
+                scope.__configurationResult = result ? "accepted" : "rejected";
+                (callback as (response: unknown) => void)(result);
+              };
+            }
+            const result: unknown = Reflect.apply(target, receiver, args);
+            return result;
+          },
+        });
       }, EXTENSION.configurationMessage);
-      await page.getByRole("button", { name: UI.save, exact: true }).click();
+      await page
+        .getByRole("button", { name: SETTINGS_UI.save, exact: true })
+        .click();
       await page.waitForFunction(
-        () => (globalThis as any).__configurationResult !== "pending",
+        () =>
+          (globalThis as ExtensionScope).__configurationResult !== "pending",
         undefined,
         { timeout: TIMEOUTS.configuration },
       );
       const accepted = await page.evaluate(
-        () => (globalThis as any).__configurationResult === "accepted",
+        () =>
+          (globalThis as ExtensionScope).__configurationResult === "accepted",
       );
       if (!accepted) throw new Error("rejected");
     } catch {

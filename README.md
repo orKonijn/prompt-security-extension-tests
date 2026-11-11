@@ -48,7 +48,27 @@ The package is excluded from Git; it is not redistributed in this repository.
 ZIP/CRX files must first be unpacked. A CRX has a header and cannot simply be renamed to ZIP.
 Set `EXTENSION_PATH` to the resulting directory. The local working copy uses `.local/extension`.
 
-## Local execution
+## Code quality
+
+```sh
+npm run validate      # TypeScript, ESLint, and formatting checks
+npm run lint:fix      # Apply safe ESLint fixes
+npm run format        # Format project files
+```
+
+ESLint uses flat configuration with recommended type-aware TypeScript and
+Playwright rules. It enforces explicit class accessibility and catches unsafe
+types, unhandled promises, focused/skipped tests, and fixed Playwright sleeps.
+POM assertion methods are registered with the assertion rule. Prettier runs
+separately; eslint-config-prettier disables conflicting formatting rules.
+Downloaded extensions, local credentials, and generated artifacts are excluded.
+TypeScript is pinned to 6.0.3, supported by the installed typescript-eslint release.
+
+The lint toolchain currently has a moderate minimatch advisory reported by
+`npm audit` (10 affected dependency entries). No forced dependency overrides are
+applied. This concerns the development tooling, not extension policy enforcement.
+
+## Installing and running
 
 ```sh
 npm ci
@@ -72,14 +92,14 @@ npm test
 
 ## Policy coverage and assertion limits
 
-| Scenario | Expected behavior |
-| --- | --- |
-| Direct ChatGPT navigation | Composer visible, editable, and reachable without an intercepting overlay |
-| Direct Gemini navigation | Prompt Security denial visible |
-| Refresh Gemini | Denial present both before and after refresh |
-| ChatGPT to Gemini in the same tab | ChatGPT accessible first, then Gemini denied |
-| Gemini to ChatGPT in the same tab | Gemini denied first, then ChatGPT accessible |
-| Gemini in a second tab | Gemini denied while the original ChatGPT tab stays accessible |
+| Scenario                          | Expected behavior                                                         |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| Direct ChatGPT navigation         | Composer visible, editable, and reachable without an intercepting overlay |
+| Direct Gemini navigation          | Prompt Security denial visible                                            |
+| Refresh Gemini                    | Denial present both before and after refresh                              |
+| ChatGPT to Gemini in the same tab | ChatGPT accessible first, then Gemini denied                              |
+| Gemini to ChatGPT in the same tab | Gemini denied first, then ChatGPT accessible                              |
+| Gemini in a second tab            | Gemini denied while the original ChatGPT tab stays accessible             |
 
 Each test gets a fresh extension profile. Tests do not send chat prompts or modify
 administrator policy. A failed prerequisite stops that scenario; later steps must
