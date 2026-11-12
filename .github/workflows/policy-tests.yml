@@ -27,19 +27,10 @@ jobs:
       - name: Validate code
         run: npm run validate
 
-      - name: Download the static extension
-        env:
-          EXTENSION_ZIP_URL: ${{ secrets.EXTENSION_ZIP_URL }}
-          EXTENSION_SHA256: ${{ vars.EXTENSION_SHA256 }}
+      - name: Unpack the static extension
         run: |
-          : "${EXTENSION_ZIP_URL:?Set the EXTENSION_ZIP_URL repository secret}"
-          : "${EXTENSION_SHA256:?Set the EXTENSION_SHA256 repository variable}"
           mkdir -p .local/extension
-          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
-            --connect-timeout 30 --max-time 120 \
-            "$EXTENSION_ZIP_URL" --output .local/extension.zip
-          printf '%s  %s\n' "$EXTENSION_SHA256" '.local/extension.zip' | sha256sum --check
-          unzip -q .local/extension.zip -d .local/extension
+          unzip -q extension/prompt-extension.zip -d .local/extension
           test -f .local/extension/manifest.json
 
       - name: Install Chromium

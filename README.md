@@ -3,7 +3,6 @@
 ## Prerequisites
 
 - Node.js 24 and npm.
-- An unpacked Prompt Security extension with `manifest.json` at its root.
 - An API key and API domain configured to allow ChatGPT and block Gemini.
 - Network access to the backend, ChatGPT, and Gemini.
 
@@ -18,6 +17,19 @@ npm run browser:install
 
 ## Configure
 
+Unpack the included extension in PowerShell:
+
+```powershell
+Expand-Archive -LiteralPath "extension/prompt-extension.zip" -DestinationPath ".local/extension" -Force
+```
+
+On Linux or macOS:
+
+```sh
+mkdir -p .local/extension
+unzip -o extension/prompt-extension.zip -d .local/extension
+```
+
 Copy `.env.example` to `.env` and fill in:
 
 ```dotenv
@@ -27,8 +39,7 @@ PROMPT_API_KEY=your-api-key
 HEADLESS=false
 ```
 
-Set `EXTENSION_PATH` to the unpacked extension folder, not a ZIP or CRX file.
-The extension package is not included in the repository. Keep `.env` local.
+Set `EXTENSION_PATH` to the unpacked folder, not the ZIP. Keep `.env` local.
 Set `HEADLESS=true` to run without a visible browser window.
 
 ## Run
@@ -58,28 +69,18 @@ xvfb-run -a npm test
 
 ## Run in GitHub Actions
 
-1. ZIP the contents of the unpacked extension folder, with `manifest.json` at the
-   ZIP root. Use the same static extension version as your local run.
-2. Put the ZIP at an approved HTTPS download location accessible to the runner.
-   A signed download URL can be stored as a secret; it must remain valid for the run.
-3. Under **Settings → Secrets and variables → Actions**, configure:
+1. Under **Settings > Secrets and variables > Actions**, configure:
 
-   | Kind     | Name                | Value                                 |
-   | -------- | ------------------- | ------------------------------------- |
-   | Secret   | `EXTENSION_ZIP_URL` | Direct HTTPS download URL for the ZIP |
-   | Secret   | `PROMPT_API_KEY`    | Your API key                          |
-   | Variable | `EXTENSION_SHA256`  | SHA-256 checksum of that ZIP          |
-   | Variable | `PROMPT_API_DOMAIN` | `eu.prompt.security`                  |
+   | Kind     | Name                | Value                |
+   | -------- | ------------------- | -------------------- |
+   | Secret   | `PROMPT_API_KEY`    | Your API key         |
+   | Variable | `PROMPT_API_DOMAIN` | `eu.prompt.security` |
 
-   Calculate the ZIP checksum in PowerShell:
-
-   ```powershell
-   (Get-FileHash -Algorithm SHA256 -LiteralPath "path/to/extension.zip").Hash
-   ```
-
-4. After pushing the workflow, open **Actions → Extension policy tests** and select
-   the run for your branch. Each push triggers validation and all policy tests.
-   Manual **Run workflow** becomes available once the workflow exists on the
+2. The workflow unpacks `extension/prompt-extension.zip` from the repository.
+   No external storage, download URL, or checksum variable is needed.
+3. After pushing the workflow and ZIP, open **Actions > Extension policy tests**
+   and select the run for your branch. Each push triggers validation and all policy
+   tests. Manual **Run workflow** becomes available once the workflow exists on the
    default branch.
-5. Open the **Run policy tests** step for the test-suite printout. A failed test
+4. Open the **Run policy tests** step for the test-suite printout. A failed test
    fails the job; the workflow does not skip or suppress policy failures.
