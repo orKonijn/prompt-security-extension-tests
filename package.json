@@ -9,14 +9,27 @@
   "scripts": {
     "check": "tsc --noEmit",
     "test": "playwright test",
-    "test:setup": "playwright test tests/setup.spec.ts",
-    "browser:install": "playwright install chromium"
+    "browser:install": "playwright install chromium",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "validate": "npm run check && npm run lint && npm run format:check"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.0",
     "@types/chrome": "0.3.7",
     "@types/node": "26.6.6",
     "dotenv": "18.0.10",
-    "typescript": "7.0.2"
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-playwright": "2.12.2",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
+  },
+  "overrides": {
+    "minimatch": "11.0.1"
   }
 }
