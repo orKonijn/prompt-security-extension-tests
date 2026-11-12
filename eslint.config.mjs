@@ -35,6 +35,21 @@ export default defineConfig(
     },
     rules: {
       eqeqeq: ["error", "always"],
+      curly: ["error", "all"],
+      "@typescript-eslint/member-ordering": [
+        "error",
+        {
+          default: {
+            memberTypes: [
+              "field",
+              "constructor",
+              ["public-method", "public-get", "public-set"],
+              ["protected-method", "protected-get", "protected-set"],
+              ["private-method", "private-get", "private-set"],
+            ],
+          },
+        },
+      ],
       "no-param-reassign": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/consistent-type-exports": "error",
