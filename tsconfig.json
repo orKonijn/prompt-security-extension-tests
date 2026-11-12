@@ -9,5 +9,12 @@
     "types": ["node", "chrome"],
     "skipLibCheck": true
   },
-  "include": ["tests/**/*.ts", "playwright.config.ts"]
+  "include": [
+    "tests/**/*.ts",
+    "fixtures/**/*.ts",
+    "pages/**/*.ts",
+    "resources/**/*.ts",
+    "support/**/*.ts",
+    "playwright.config.ts"
+  ]
 }

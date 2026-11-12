@@ -29,7 +29,6 @@ export class ExtensionSettingsPage {
 
   private watchForConfigurationErrors(): void {
     this.page.on("dialog", (dialog) => {
-      // Do not log alert text: it may contain sensitive configuration details.
       this.hasConfigurationError = true;
       void dialog.dismiss().catch(() => {
         this.hasConfigurationError = true;

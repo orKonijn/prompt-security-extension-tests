@@ -1,4 +1,4 @@
-import { TIMEOUTS } from "./tests/resources/timeouts.ts";
+import { TIMEOUTS } from "./resources/timeouts.ts";
 import { defineConfig } from "@playwright/test";
 import { config } from "dotenv";
 

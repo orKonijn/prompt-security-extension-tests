@@ -18,7 +18,14 @@ export default defineConfig(
     extends: [js.configs.recommended],
   },
   {
-    files: ["tests/**/*.ts", "playwright.config.ts"],
+    files: [
+      "tests/**/*.ts",
+      "fixtures/**/*.ts",
+      "pages/**/*.ts",
+      "resources/**/*.ts",
+      "support/**/*.ts",
+      "playwright.config.ts",
+    ],
     extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
@@ -36,7 +43,7 @@ export default defineConfig(
   },
   {
     ...playwright.configs["flat/recommended"],
-    files: ["tests/**/*.ts"],
+    files: ["tests/**/*.ts", "fixtures/**/*.ts", "pages/**/*.ts"],
     rules: {
       ...playwright.configs["flat/recommended"].rules,
       "playwright/no-focused-test": "error",

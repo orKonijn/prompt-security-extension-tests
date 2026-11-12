@@ -9,7 +9,6 @@
   "scripts": {
     "check": "tsc --noEmit",
     "test": "playwright test",
-    "test:setup": "playwright test tests/setup.spec.ts",
     "browser:install": "playwright install chromium",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix --max-warnings=0",
