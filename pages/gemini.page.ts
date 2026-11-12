@@ -6,21 +6,21 @@ import { expect, type Page } from "@playwright/test";
 export class GeminiPage {
   public constructor(public readonly page: Page) {}
 
-  public async open() {
+  public async open(): Promise<void> {
     await this.page.goto(GEMINI.url, {
       waitUntil: "domcontentloaded",
       timeout: TIMEOUTS.navigation,
     });
   }
 
-  public async reload() {
+  public async reload(): Promise<void> {
     await this.page.reload({
       waitUntil: "domcontentloaded",
       timeout: TIMEOUTS.navigation,
     });
   }
 
-  public async expectBlocked() {
+  public async expectBlocked(): Promise<void> {
     await expect(this.page).toHaveURL(GEMINI.urlPattern);
     await expect(
       this.page.getByText(BLOCK_PAGE.title, { exact: true }),

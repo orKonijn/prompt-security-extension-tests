@@ -5,7 +5,7 @@ import { loadConfig } from "../support/config.ts";
 import { ExtensionSettingsPage } from "../pages/extension-settings.page.ts";
 
 export const test = base.extend<{ extensionContext: BrowserContext }>({
-  extensionContext: async ({}, use, testInfo) => {
+  extensionContext: async ({}, use, testInfo): Promise<void> => {
     const config = await loadConfig();
     const context = await chromium.launchPersistentContext("", {
       channel: "chromium",
@@ -21,9 +21,9 @@ export const test = base.extend<{ extensionContext: BrowserContext }>({
       const worker =
         context
           .serviceWorkers()
-          .find((w) => w.url().startsWith(EXTENSION.scheme)) ??
+          .find((w): boolean => w.url().startsWith(EXTENSION.scheme)) ??
         (await context.waitForEvent("serviceworker", {
-          predicate: (w) => w.url().startsWith(EXTENSION.scheme),
+          predicate: (w): boolean => w.url().startsWith(EXTENSION.scheme),
           timeout: TIMEOUTS.worker,
         }));
       const extensionId = new URL(worker.url()).hostname;

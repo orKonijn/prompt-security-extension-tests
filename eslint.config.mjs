@@ -34,11 +34,24 @@ export default defineConfig(
       },
     },
     rules: {
+      eqeqeq: ["error", "always"],
+      "no-param-reassign": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/consistent-type-exports": "error",
+      "@typescript-eslint/switch-exhaustiveness-check": "error",
       "@typescript-eslint/explicit-member-accessibility": [
         "error",
         { accessibility: "explicit" },
       ],
       "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {
+          allowExpressions: false,
+          allowTypedFunctionExpressions: false,
+          allowHigherOrderFunctions: false,
+        },
+      ],
     },
   },
   {
@@ -50,6 +63,11 @@ export default defineConfig(
       "playwright/no-skipped-test": "error",
       "playwright/prefer-web-first-assertions": "error",
       "playwright/no-wait-for-timeout": "error",
+      "playwright/no-commented-out-tests": "error",
+      "playwright/no-nth-methods": "error",
+      "playwright/no-magic-timeouts": "error",
+      "playwright/prefer-native-locators": "error",
+      "playwright/prefer-strict-equal": "error",
     },
   },
   {

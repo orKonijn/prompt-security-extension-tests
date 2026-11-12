@@ -28,9 +28,9 @@ export class ExtensionSettingsPage {
   }
 
   private watchForConfigurationErrors(): void {
-    this.page.on("dialog", (dialog) => {
+    this.page.on("dialog", (dialog): void => {
       this.hasConfigurationError = true;
-      void dialog.dismiss().catch(() => {
+      void dialog.dismiss().catch((): void => {
         this.hasConfigurationError = true;
       });
     });

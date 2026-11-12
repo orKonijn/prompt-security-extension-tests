@@ -1,8 +1,11 @@
 import { EXTENSION } from "../resources/extension-settings.constants.ts";
+import type { ExtensionConfig } from "../resources/extension-config.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-export async function loadConfig(env: NodeJS.ProcessEnv = process.env) {
+export const loadConfig = async (
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<ExtensionConfig> => {
   const extensionPath = env.EXTENSION_PATH?.trim();
   const apiKey = env.PROMPT_API_KEY?.trim();
   const apiDomain = env.PROMPT_API_DOMAIN?.trim();
@@ -26,16 +29,17 @@ export async function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       "SETUP: Cannot read a valid manifest.json from EXTENSION_PATH. Unpack ZIP/CRX first.",
     );
   }
+
   if (
     !manifest ||
     manifest.manifest_version !== EXTENSION.manifestVersion ||
     !manifest.background?.service_worker ||
     manifest.action?.default_popup !== EXTENSION.popupPath
-  ) {
+  )
     throw new Error(
       "SETUP: Unsupported extension manifest; inspect its configuration interface before proceeding.",
     );
-  }
+
   return {
     extensionDir,
     apiKey,
@@ -43,4 +47,4 @@ export async function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     headless: env.HEADLESS === "true",
     version: manifest.version,
   };
-}
+};
